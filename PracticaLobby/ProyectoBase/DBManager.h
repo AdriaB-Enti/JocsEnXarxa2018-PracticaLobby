@@ -10,7 +10,7 @@
 #include <cppconn\exception.h>
 
 //Constant values
-#define DB_HOST "tcp://192.168.122.38:3306"
+#define DB_HOST "tcp://192.168.1.41:3306"
 #define USER "root"
 #define PWD "linux123"
 
