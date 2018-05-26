@@ -14,10 +14,14 @@ bool DBManager::registerUser(std::string name, std::string pswd)
 {
 	bool succes = false;
 
+	std::cout << "registrant\n";
+
 	//Comprovacions de si es pot registrar
-	resultSet = stmt->executeQuery("select count(*) from Players where name="+name);
+	resultSet = stmt->executeQuery("select count(*) from Players where name='"+name+"'");
 	if (resultSet->next())
 	{
+		std::cout << "player not found\n";
+
 		if (resultSet->getInt(1) == 0) {
 			stmt->execute("INSERT INTO Players(name, password) VALUES('"+name+"','"+pswd+"')");
 			succes = true;
