@@ -1,4 +1,4 @@
-//Copia de tot el main del Servidor (TCP)
+//Copia de tot el main del Servidor (TCP)------------------COMENTAR TOT
 /*
 #include <SFML\Network.hpp>
 #include <string>
@@ -52,7 +52,6 @@ void playerDead(int x, int y);
 //Global vars
 std::vector<sf::TcpSocket*> sockets;
 std::vector<Player> players;
-bool waitingForMove = true;
 sf::Uint8 currentTurn = (sf::Uint8)0;
 int playersAlive = MAXPLAYERS;
 bool gameFinished = false;

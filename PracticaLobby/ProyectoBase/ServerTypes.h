@@ -17,6 +17,10 @@ struct Player
 	sf::TcpSocket* playerSock;
 };
 
+enum Directions
+{
+	UP, DOWN, LEFT, RIGHT
+};
 
 enum Comandos
 {

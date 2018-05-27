@@ -69,6 +69,7 @@ int main()
 									std::cout << "match full\n";
 									matIter->second.hasStarted = true;
 									matIter->second.sendMatchStart();
+									matIter->second.sendCurrentTurnToAll();
 								}
 								placed = true;
 								break;
@@ -214,6 +215,12 @@ void recieveData() {
 		iter++;
 	}
 
-	//TODO iterar jugadors en partides----------------------
-
+	//iterar jugadores en partidas (se hace dentro de match)
+	for (auto match = matches.begin(); match != matches.end(); match++)
+	{
+		if (match->second.hasStarted)
+		{
+			match->second.update();
+		}
+	}
 }
