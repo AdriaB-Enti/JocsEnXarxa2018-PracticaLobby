@@ -224,18 +224,18 @@ int main() {
 		}else {
 			//Dibujar el mapa i jugadores
 			window.draw(mapShape);
-			/*for (int i = 0; i < MAXPLAYERS; i++)
+			for (auto player = jugadores.begin(); player != jugadores.end(); player++)
 			{
-				characterSprite.setPosition(sf::Vector2f(jugadores.at(i).position*TILESIZE));
-				if (jugadores.at(i).isDead)
+				characterSprite.setPosition(sf::Vector2f(player->position*TILESIZE));
+				if (player->isDead)
 				{
 					characterSprite.rotate(-90);
 					characterSprite.move(sf::Vector2f(0, TILESIZE));
 				}
 				window.draw(characterSprite);
 				characterSprite.setRotation(0);
-				window.draw(jugadores.at(i).nameText);
-			}*/
+				window.draw(player->nameText);
+			}
 		}
 
 		window.draw(gameResult);
@@ -379,7 +379,8 @@ void recieveFromServer(){
 
 	if (result == sf::TcpSocket::Status::Done)
 	{
-		int comandoInt;
+		std::cout << "pack recieved\n";
+		sf::Uint8 comandoInt;
 		packet >> comandoInt;
 		Comandos comando = (Comandos)comandoInt;
 
@@ -387,6 +388,9 @@ void recieveFromServer(){
 		{
 		case inicio_partida:
 		{
+			std::cout << "Game started\n";
+			inLobby = false;
+			gameResult.setString("");
 			std::string mensajeStr;
 			std::stringstream ss;
 			std::string playerN;

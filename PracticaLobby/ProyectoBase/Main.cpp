@@ -11,29 +11,6 @@
 #include "DBManager.h"
 #include "Match.h"
 
-enum Comandos
-{
-	registro,
-	login,
-	welcome,
-	mi_nick_es,
-	inicio_partida,
-	mensaje,
-	Move,
-	Posicion_final,
-	Eliminado,
-	Ganador,
-	Es_Tu_Turno,
-	Error,
-	buscar_partida
-};
-
-enum Errors {
-	login_error
-};
-
-#define MAX_LEVEL_DIFFERENCE 4	//Número de niveles que otros jugadores pueden tener de más o menos al hacer macthmaking
-
 //fwd declarations
 void recieveData();
 
@@ -60,22 +37,19 @@ int main()
 		sf::Socket::Status st = listener.accept(*newSock);
 		if (st== sf::Socket::Status::Done)
 		{
-			newSock->setBlocking(false);
-
 			std::string texto = "Conexion con ... " + (newSock->getRemoteAddress()).toString() + ":" + std::to_string(newSock->getRemotePort()) + "\n";
 			std::cout << texto;
 
 			Player newPlayer;
 			newPlayer.playerSock = newSock;
-			newSock->setBlocking(false);
+			newPlayer.playerSock->setBlocking(false);
 			nonActivePlayers.push_back(newPlayer);
 		}
 
 
-
 		recieveData();
 
-
+		//Control non active players
 		if (mathmakingWait.getElapsedTime().asMilliseconds() > 300)
 		{
 			for (auto playerIter = nonActivePlayers.begin(); playerIter != nonActivePlayers.end();)
@@ -91,6 +65,11 @@ int main()
 							{
 								std::cout << "jugador afegit a una existent\n";
 								matIter->second.players.push_back(*playerIter);
+								if (matIter->second.isFull()) {
+									std::cout << "match full\n";
+									matIter->second.hasStarted = true;
+									matIter->second.sendMatchStart();
+								}
 								placed = true;
 								break;
 							}
@@ -104,6 +83,7 @@ int main()
 						//crear match i afegir el jugador
 						Match newMatch = Match();
 						newMatch.players.push_back(*playerIter);
+						std::cout << "current matchs: " << matches.size() << std::endl;
 						matches.emplace(std::pair<sf::Uint32, Match>(idMatchCounter++, newMatch));
 						playerIter = nonActivePlayers.erase(playerIter);
 					}
@@ -234,6 +214,6 @@ void recieveData() {
 		iter++;
 	}
 
-	//TODO iterar jugadors en partides
+	//TODO iterar jugadors en partides----------------------
 
 }

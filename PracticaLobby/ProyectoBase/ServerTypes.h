@@ -16,3 +16,25 @@ struct Player
 	bool connected = true;
 	sf::TcpSocket* playerSock;
 };
+
+
+enum Comandos
+{
+	registro,
+	login,
+	welcome,
+	mi_nick_es,
+	inicio_partida,
+	mensaje,
+	Move,
+	Posicion_final,
+	Eliminado,
+	Ganador,
+	Es_Tu_Turno,
+	Error,
+	buscar_partida
+};
+
+enum Errors {
+	login_error
+};
