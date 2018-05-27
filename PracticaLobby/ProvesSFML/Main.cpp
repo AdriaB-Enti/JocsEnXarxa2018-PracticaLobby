@@ -11,6 +11,9 @@
 
 enum Comandos
 {
+	registro,
+	login,
+	welcome,
 	mi_nick_es,
 	inicio_partida,
 	mensaje,
@@ -18,7 +21,12 @@ enum Comandos
 	Posicion_final,
 	Eliminado,
 	Ganador,
-	Es_Tu_Turno
+	Es_Tu_Turno,
+	Error,
+	buscar_partida
+};
+enum Errors {
+	login_error
 };
 struct Player
 {
@@ -45,6 +53,13 @@ namespace Game {
 }
 
 //Fordward declarations
+void sendRegister(std::string nick, std::string pass, std::string email);
+void sendLogin(std::string nick, std::string pass);
+void waitForServerWelcome();
+
+
+
+//game
 void sendToServer(std::string mensaje);
 void sendNickToServer(std::string nick);
 void sendMove(int x, int y);
@@ -54,10 +69,13 @@ std::string statusToStr(sf::Socket::Status status);
 
 //Global vars
 sf::TcpSocket socket;		//Conexión con el servidor
+sf::Uint64 myId;
 std::string mensajeTeclado;
 std::vector<Player> jugadores;
 sf::Uint8 miTurno = 200;	//Se cambiará
 sf::Text gameResult;
+sf::RenderWindow window;
+bool inLobby = true;
 
 //Font
 sf::Font font;
@@ -67,36 +85,70 @@ const sf::Vector2i initialPositions[] = { sf::Vector2i(0,0),  sf::Vector2i(0,7),
 
 int main() {
 
-	//Codi de la conexió al servidor 
-	std::string user = "testing";
-	std::cout << "Escribe tu nombre (sin espacios):\n";
-	std::cin >> user;
+	//Inicio conexión al servidor 
 	std::string ip = "";
 	ip = "localhost";
 	sf::Socket::Status st;
-	st = socket.connect(ip, 50000, sf::milliseconds(15.f));
+	st = socket.connect(ip, 50000, sf::milliseconds(2000.f));
 	if (st == sf::Socket::Error)
 	{
 		std::cout << "Error: No se ha podido conectar con el servidor\n";
 		system("pause");
 		return 0;
 	}
+	socket.setBlocking(false);
+
+	std::string answerStr, pass, user = "testing";
+	std::cout << "Para poder jugar necesitas estar registrado.\nEres un usuario nuevo? [S/n]\n";		//Es necessari....?
+	std::cin >> answerStr;
+	bool registrado = true;
+	if (answerStr.front() == 'S' || answerStr.front() == 's')
+	{
+		registrado = false;
+	}
 	
-	sendNickToServer(user);
+	std::cout << "Escribe tu nombre:\n";
+	std::cin >> user;
+	std::cout << "Escribe tu contraseña:\n";
+	std::cin >> pass;
+
+	//enviar user i pass
+	if (registrado)
+	{
+		sendLogin(user, pass);
+	}
+	else {
+		std::string email;
+		std::cout << "Escribe tu email:\n";
+		std::cin >> email;
+		sendRegister(user, pass, email);
+	}
+
+	waitForServerWelcome();
+
+	sf::Packet matchm;
+	matchm << (sf::Uint8)Comandos::buscar_partida;
+	matchm << myId;
+	socket.send(matchm);
+
+
+	//sendNickToServer(user);
 	std::string texto = "Conexion con ... " + (socket.getRemoteAddress()).toString() + ":" + std::to_string(socket.getRemotePort()) + "\n";
 	recieveFromServer();
 
 	//Creación de la ventana
 	sf::Vector2i screenDimensions(800, 900);
-	sf::RenderWindow window;
 	window.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), "TCPGame - "+user);
 	//Para evitar que al mantener pulsado un botón se generen múltiples eventos
 	window.setKeyRepeatEnabled(false);
 
 	//Texturas, Sprites y fuentes
 	sf::RectangleShape mapShape(sf::Vector2f(TILESIZE*N_TILES_WIDTH, TILESIZE*N_TILES_HEIGHT));
+	sf::RectangleShape lobbyShape = mapShape;
 	//mapShape.setFillColor(sf::Color::Green);
-	sf::Texture texture, characterTexture;
+	sf::Texture texture, characterTexture, lobbyTexture;
+	if (!lobbyTexture.loadFromFile("greytext.png"))
+		std::cout << "Error al cargar la textura del lobby!\n";
 	if (!texture.loadFromFile("mapa2.png"))
 		std::cout << "Error al cargar la textura del mapa!\n";
 	if (!characterTexture.loadFromFile("personatgeTransp.png"))
@@ -104,11 +156,13 @@ int main() {
 	if (!font.loadFromFile("courbd.ttf"))
 		std::cout << "Error al cargar la fuente" << std::endl;
 
-	mapShape.setTexture(&texture);	//s'hauria de provar amb sprites tmb
-	sf::Sprite characterSprite = sf::Sprite(characterTexture);
-	gameResult = sf::Text("", font, 50);
 
-	socket.setBlocking(false);
+	mapShape.setTexture(&texture);
+	lobbyShape.setTexture(&lobbyTexture);
+	sf::Sprite characterSprite = sf::Sprite(characterTexture);
+	gameResult = sf::Text("BUSCANDO PARTIDA", font, 50);
+	gameResult.setPosition(window.getSize().x / 5, 40);
+
 
 	while (window.isOpen())
 	{
@@ -164,22 +218,27 @@ int main() {
 		}
 		window.clear();
 
-		//Dibujar el mapa i jugadores
-		window.draw(mapShape);
-		for (int i = 0; i < MAXPLAYERS; i++)
+		if (inLobby)
 		{
-			characterSprite.setPosition(sf::Vector2f(jugadores.at(i).position*TILESIZE));
-			if (jugadores.at(i).isDead)
+			window.draw(lobbyShape);
+		}else {
+			//Dibujar el mapa i jugadores
+			window.draw(mapShape);
+			/*for (int i = 0; i < MAXPLAYERS; i++)
 			{
-				characterSprite.rotate(-90);
-				characterSprite.move(sf::Vector2f(0, TILESIZE));
-			}
-			window.draw(characterSprite);
-			characterSprite.setRotation(0);
-			window.draw(jugadores.at(i).nameText);
-			window.draw(gameResult);
+				characterSprite.setPosition(sf::Vector2f(jugadores.at(i).position*TILESIZE));
+				if (jugadores.at(i).isDead)
+				{
+					characterSprite.rotate(-90);
+					characterSprite.move(sf::Vector2f(0, TILESIZE));
+				}
+				window.draw(characterSprite);
+				characterSprite.setRotation(0);
+				window.draw(jugadores.at(i).nameText);
+			}*/
 		}
 
+		window.draw(gameResult);
 		window.display();
 	}
 
@@ -187,6 +246,69 @@ int main() {
 
 	return 0;
 }
+
+
+
+void sendRegister(std::string nick, std::string pass, std::string email){
+	sf::Packet packet;
+	packet << (sf::Uint8)Comandos::registro;
+	packet << nick;
+	packet << pass;
+	packet << email;
+	sf::Socket::Status st;
+	do
+	{
+		st = socket.send(packet);
+	} while (st == sf::Socket::Partial);
+
+}
+void sendLogin(std::string nick, std::string pass) {
+	sf::Packet packet;
+	packet << (sf::Uint8)Comandos::login;
+	packet << nick;
+	packet << pass;
+	sf::Socket::Status st;
+	do
+	{
+		st = socket.send(packet);
+	} while (st == sf::Socket::Partial);
+}
+
+void waitForServerWelcome() {
+
+	sf::Packet packResponse;
+	sf::Socket::Status stResponse;
+
+	std::cout << "Esperando la respuesta del servidor...\n";
+	stResponse = socket.receive(packResponse);
+	while (stResponse != sf::TcpSocket::Status::Done)
+	{
+		sf::sleep(sf::milliseconds(200.f)); 
+		stResponse = socket.receive(packResponse);
+	}
+	//TODO: posar un temps limit per esperar la resposta?
+
+	sf::Uint8 comandoInt;
+	packResponse >> comandoInt;
+	Comandos comando = (Comandos)comandoInt;
+	if (comando == Comandos::welcome)
+	{
+		packResponse >> myId;
+		std::cout << "Bienvenido al servidor, usuario " << (int)myId << "\n";
+	}
+	else if (comando == Comandos::Error) {
+		sf::Uint8 errorInt;
+		packResponse >> errorInt;
+		if ((Errors)errorInt == Errors::login_error)
+		{
+			std::cout << "Error: el nombre de usuario i/o contraseña son incorrectos\n";
+			system("pause");
+			exit(0);
+		}
+	}
+
+}
+
 
 void sendNickToServer(std::string nick) {
 	sf::Packet packet;
@@ -346,6 +468,11 @@ void recieveFromServer(){
 	else if (result == sf::TcpSocket::Status::Disconnected) {
 		socket.disconnect();
 		std::cout << "El servidor se ha desconectado " << std::endl;
+		if (window.isOpen())
+		{
+			window.close();
+		}
+		return;
 	}
 
 }

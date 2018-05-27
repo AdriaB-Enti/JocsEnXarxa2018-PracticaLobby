@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProyectoNonBlocking", "ProyectoBase\ProyectoBase.vcxproj", "{6A1B6770-E74D-44A0-87B1-8ECCF3246020}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServidorCS", "ProyectoBase\ProyectoBase.vcxproj", "{6A1B6770-E74D-44A0-87B1-8ECCF3246020}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProvesSFML", "ProvesSFML\ProvesSFML.vcxproj", "{514ADC40-2A1C-40D4-9351-09B995B81BCB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ClienteCS", "ProvesSFML\ProvesSFML.vcxproj", "{514ADC40-2A1C-40D4-9351-09B995B81BCB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

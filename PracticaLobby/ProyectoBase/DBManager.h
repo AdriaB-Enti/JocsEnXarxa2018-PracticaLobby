@@ -20,11 +20,13 @@ public:
 	DBManager();
 
 	//Returns if resitrationa was succesful or not
-	bool registerUser(std::string name, std::string pswd);
+	bool registerUser(std::string name, std::string pswd, std::string email);
 	//Returns if login was succesful or not (name and password match)
-	bool login(std::string name, std::string pswd);
+	bool login(std::string name, std::string pswd, int &idPlayer, int &level);
 	//Adds a match to the given session with the given player
 	void addMatch(int idPlayer, int idSession);
+	//Returns the last registered id
+	int getLastRegistered();
 
 	~DBManager();
 private:
