@@ -28,6 +28,12 @@ public:
 	//Returns the last registered id
 	int getLastRegistered();
 
+	//Saves session from player with name 'name'
+	void saveSession(std::string name);
+
+
+
+
 	~DBManager();
 private:
 	sql::Driver* driver;

@@ -24,7 +24,8 @@ enum Comandos
 	Ganador,
 	Es_Tu_Turno,
 	Error,
-	buscar_partida
+	buscar_partida,
+	desconectado
 };
 enum Errors {
 	login_error

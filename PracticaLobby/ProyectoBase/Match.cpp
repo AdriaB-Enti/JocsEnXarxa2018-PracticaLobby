@@ -149,6 +149,7 @@ void Match::sendPacketToAll(sf::Packet & packet)
 				players.at(jug).connected = false;
 				(*itera).playerSock->disconnect();
 				//sendMsgToAll("Se ha desconectado el jugador "+ players.at(jug).nick);
+				//TODO: enviar commando disconnect
 				//liberar memoria
 			}
 		}
@@ -282,7 +283,12 @@ void Match::update() {
 				(*it).playerSock->disconnect();
 				players.at(njugador).connected = false;
 				playersAlive--;
-				//sendMsgToAll("Se ha desconectado el jugador " + players.at(njugador).nick);
+				sf::Packet disconPacket;
+				disconPacket << (sf::Uint8)Comandos::mensaje;
+				disconPacket << std::string("Servidor: el jugador "+ players.at(njugador).nick+" se ha desconectado");
+				sendPacketToAll(disconPacket);
+				//TODO: sendMsgToAll("Se ha desconectado el jugador " + players.at(njugador).nick);
+				//TODO: enviar comando disconect a tots els altres
 				//--delete * it;
 				//it = sockets.erase(it);
 				//++it;

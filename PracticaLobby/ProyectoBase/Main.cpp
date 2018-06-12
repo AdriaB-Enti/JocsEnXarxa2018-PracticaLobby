@@ -22,8 +22,6 @@ DBManager dbm;
 
 int main()
 {
-	std::cout << "first\n";
-
 	sf::TcpListener listener;
 	listener.setBlocking(false);
 	listener.listen(50000);
@@ -146,6 +144,9 @@ void recieveData() {
 				newPack << (sf::Uint8)Comandos::welcome;
 				newPack << (sf::Uint64) newPlayerId;
 				iter->playerSock->send(newPack);
+
+
+				//TODO: apuntar en el log de conexions
 			}
 			break;
 			case login:
@@ -167,6 +168,8 @@ void recieveData() {
 					iter->level = (sf::Uint16)playerLevel;
 					iter->isLogged = true;
 					std::cout << "level: " << playerLevel << "\n";
+
+					//TODO: apuntar en el log de conexions
 				}
 				else
 					std::cout << "bad logging\n"; {

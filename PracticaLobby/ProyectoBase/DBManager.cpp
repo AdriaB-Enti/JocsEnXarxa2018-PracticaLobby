@@ -101,3 +101,10 @@ DBManager::~DBManager()
 	/*delete stmt;
 	delete con;*/
 }
+
+void saveSession(std::string name) {
+
+
+
+
+}

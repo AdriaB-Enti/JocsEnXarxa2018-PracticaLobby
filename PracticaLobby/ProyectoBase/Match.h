@@ -20,6 +20,7 @@ public:
 	sf::Uint8 currentTurn = (sf::Uint8)0;
 	int playersAlive = MAX_PLAYERS;
 	bool gameFinished = false;
+
 	Match();
 	~Match();
 
@@ -32,6 +33,7 @@ public:
 	void sendWinner(sf::Uint8 winner);
 	bool isOutsideMap(int x, int y);
 	void changeTurn();
+	//Sends a packet to all the players that are connected to that match. Disconnected players or palyers at other matches do not count.
 	void sendPacketToAll(sf::Packet &packet);
 	void sendMoveToAll(Directions dir);
 };
