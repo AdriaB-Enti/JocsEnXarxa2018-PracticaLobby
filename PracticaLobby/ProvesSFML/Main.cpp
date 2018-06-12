@@ -3,8 +3,9 @@
 #include <SFML\Graphics.hpp>
 #include <iostream>
 #include <sstream>
+#include <list>
 
-#define MAXPLAYERS 4
+#define MAXPLAYERS 2
 #define TILESIZE 100
 #define N_TILES_WIDTH 8
 #define N_TILES_HEIGHT 8
@@ -60,7 +61,7 @@ void waitForServerWelcome();
 
 
 //game
-void sendToServer(std::string mensaje);
+void sendMessageToServer(std::string mensaje);
 void sendNickToServer(std::string nick);
 void sendMove(int x, int y);
 void recieveFromServer();
@@ -73,7 +74,8 @@ sf::Uint64 myId;
 std::string mensajeTeclado;
 std::vector<Player> jugadores;
 sf::Uint8 miTurno = 200;	//Se cambiará
-sf::Text gameResult;
+sf::Text gameResult, gameChat, writingMessage;
+std::list<std::string> lastMessages;	//The last 3 messages in chat;
 sf::RenderWindow window;
 bool inLobby = true;
 
@@ -162,7 +164,12 @@ int main() {
 	sf::Sprite characterSprite = sf::Sprite(characterTexture);
 	gameResult = sf::Text("BUSCANDO PARTIDA", font, 50);
 	gameResult.setPosition(window.getSize().x / 5, 40);
-
+	gameChat = sf::Text("", font, 18);
+	gameChat.setPosition(sf::Vector2f(15, window.getSize().y - 95));
+	writingMessage = sf::Text("", font, 18);
+	writingMessage.setPosition(sf::Vector2f(15, window.getSize().y - 30));
+	writingMessage.setFillColor(sf::Color::Yellow);
+	writingMessage.setString("Escribe: ");
 
 	while (window.isOpen())
 	{
@@ -191,18 +198,23 @@ int main() {
 			//Detectar si estamos escribiendo algo, enviar el texto si presionamos enter, borrar la ultima letra si apretamos Backspace
 			if (event.type == sf::Event::TextEntered)
 			{
-				if (event.text.unicode > 31 && event.text.unicode < 128)
+				if (event.text.unicode > 31 && event.text.unicode < 128) {
 					mensajeTeclado.push_back(static_cast<char>(event.text.unicode));
+					writingMessage.setString("Escribe: " + mensajeTeclado);
+				}
 			}
 			if (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Return)) {		//Si apretamos enter, se envia el mensaje que teniamos escrito - TODO: controlar que no s'envii si està buit
 				if (!mensajeTeclado.empty()) {
-					sendToServer(user+": "+mensajeTeclado);
+					sendMessageToServer(user+": "+mensajeTeclado);
 					mensajeTeclado = "";
+					writingMessage.setString("Escribe: " + mensajeTeclado);
 				}
 			}
 			if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::BackSpace)) {
-				if (!mensajeTeclado.empty())
+				if (!mensajeTeclado.empty()) {
 					mensajeTeclado.pop_back();
+					writingMessage.setString("Escribe: " + mensajeTeclado);
+				}
 			}
 		}
 
@@ -239,6 +251,8 @@ int main() {
 		}
 
 		window.draw(gameResult);
+		window.draw(gameChat);
+		window.draw(writingMessage);
 		window.display();
 	}
 
@@ -310,9 +324,9 @@ void waitForServerWelcome() {
 }
 
 
-void sendNickToServer(std::string nick) {
+void sendNickToServer(std::string nick) {	//UNUSED
 	sf::Packet packet;
-	packet << Comandos::mi_nick_es;
+	packet << (sf::Uint8)Comandos::mi_nick_es;
 	packet << nick;
 
 	sf::Socket::Status st;
@@ -323,10 +337,10 @@ void sendNickToServer(std::string nick) {
 	std::cout << "nick enviat amb status " << statusToStr(st) << std::endl;
 }
 
-void sendToServer(std::string mensaje) {
+void sendMessageToServer(std::string mensaje) {
 	sf::Packet packet;
 
-	packet << Comandos::mensaje;
+	packet << (sf::Uint8)Comandos::mensaje;
 
 	packet << mensaje;
 
@@ -425,6 +439,18 @@ void recieveFromServer(){
 			std::string mensajeStr;
 			packet >> mensajeStr;
 			std::cout << mensajeStr << std::endl;
+			//Update in-game screen messages list (3 lines at the same time max)
+			lastMessages.push_front(mensajeStr);
+			while (lastMessages.size() > 3)
+			{
+				lastMessages.pop_back();
+			}
+			std::string allMessages;
+			for (auto i = lastMessages.rbegin(); i != lastMessages.rend(); i++)
+			{
+				allMessages.append(*i + "\n");
+			}
+			gameChat.setString(allMessages);
 			break;
 		}
 		case Posicion_final: 

@@ -106,7 +106,7 @@ int main()
 	return 0;
 }
 
-
+//Recieve data from players who aren't inside a match
 void recieveData() {
 	auto iter = nonActivePlayers.begin();
 	while (iter != nonActivePlayers.end())

@@ -233,39 +233,46 @@ void Match::update() {
 			//buffer[bytesReceived] = '\0';
 			if (result == sf::TcpSocket::Status::Done)
 			{
-				int commandInt;
+				sf::Uint8 commandInt;
 				packet >> commandInt;
 				Comandos commandRecieved = (Comandos)commandInt;
 
-				std::string lastMessage;
 				switch (commandRecieved)
 				{
-				case mensaje:
-					packet >> lastMessage;
-					//sendMsgToAll(lastMessage);
-					break;
-				case Move:
-				{
-					std::cout << "rebent un move de " << njugador << std::endl;
-					//comprovar que es el seu turn
-					if (currentTurn == players.at(njugador).turn) {
-						int direction;
-						packet >> direction;
-						sendMoveToAll((Directions)direction);
-						if (playersAlive == 1 && !gameFinished)
-						{
-							sendWinner(currentTurn);
-							gameFinished = true;
-						}
-						//de ser veritat -> Comandos::Ganador
-						//del contrari, canviar el turn
-						if (!gameFinished)
-							changeTurn();
+					case mensaje: 
+					{
+						std::string newMessage;
+						packet >> newMessage;
+
+						//Reenviar el mensaje a todos los jugadores
+						sf::Packet messagePacket;
+						messagePacket << (sf::Uint8)Comandos::mensaje;
+						messagePacket << newMessage;
+						sendPacketToAll(messagePacket);
 					}
-					break;
-				}
-				default:
-					break;
+						break;
+					case Move:
+					{
+						std::cout << "rebent un move de " << njugador << std::endl;
+						//comprovar que es el seu turn
+						if (currentTurn == players.at(njugador).turn) {
+							int direction;
+							packet >> direction;
+							sendMoveToAll((Directions)direction);
+							if (playersAlive == 1 && !gameFinished)
+							{
+								sendWinner(currentTurn);
+								gameFinished = true;
+							}
+							//de ser veritat -> Comandos::Ganador
+							//del contrari, canviar el turn
+							if (!gameFinished)
+								changeTurn();
+						}
+						break;
+					}
+					default:
+						break;
 				}
 				//++it;
 			}
