@@ -34,6 +34,7 @@ struct Player
 {
 	sf::Uint8 turn;
 	std::string nick;
+	sf::Uint16 level;
 	sf::Vector2i position;
 	sf::Text nameText;
 	bool isDead = false;
@@ -309,6 +310,7 @@ void waitForServerWelcome() {
 	if (comando == Comandos::welcome)
 	{
 		packResponse >> myId;
+		//TODO: rebre el nivell?
 		std::cout << "Bienvenido al servidor, usuario " << (int)myId << "\n";
 	}
 	else if (comando == Comandos::Error) {
@@ -414,9 +416,11 @@ void recieveFromServer(){
 			{
 				Player newPlayer;
 				packet >> newPlayer.nick;
+				packet >> newPlayer.level;
 				newPlayer.turn = (sf::Uint8) i;
 				newPlayer.position = initialPositions[i];
-				newPlayer.nameText = sf::Text(newPlayer.nick, font, 14);
+				std::string playerNameLabel = newPlayer.nick + "-lvl" + std::to_string(newPlayer.level);
+				newPlayer.nameText = sf::Text(playerNameLabel, font, 14);
 				newPlayer.nameText.setOutlineThickness(2.f);
 				newPlayer.nameText.setOutlineColor(sf::Color(0, 0, 0));
 				if (i==miTurno)
@@ -425,6 +429,7 @@ void recieveFromServer(){
 					newPlayer.nameText.setFillColor(sf::Color(250, 0, 0));
 				newPlayer.nameText.setStyle(sf::Text::Bold);
 				newPlayer.nameText.setPosition(newPlayer.position.x*TILESIZE, newPlayer.position.y*TILESIZE);
+				//TODO: rebre el nivell
 				jugadores.push_back(newPlayer);
 			}
 

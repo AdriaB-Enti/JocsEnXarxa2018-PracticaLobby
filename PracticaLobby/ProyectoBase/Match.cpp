@@ -57,6 +57,8 @@ void Match::sendMatchStart() {
 		for (auto p = players.begin(); p != players.end(); p++)
 		{
 			inicioPack << p->nick;
+			inicioPack << p->level;
+			//TODO: enviar el nivell
 		}
 		sf::Socket::Status st;
 		do
