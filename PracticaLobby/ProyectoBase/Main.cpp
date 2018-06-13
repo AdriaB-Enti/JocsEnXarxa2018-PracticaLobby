@@ -59,7 +59,7 @@ int main()
 					for (auto matIter = matches.begin(); matIter != matches.end();)
 					{
 						if (!matIter->second.hasStarted && !matIter->second.isFull()) {
-							if (matIter->second.isLevelInRange(MAX_LEVEL_DIFFERENCE))
+							if (matIter->second.isLevelInRange(playerIter->level))
 							{
 								std::cout << "jugador afegit a una existent\n";
 								matIter->second.players.push_back(*playerIter);
