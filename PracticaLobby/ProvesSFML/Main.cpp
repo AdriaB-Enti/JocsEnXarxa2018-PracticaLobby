@@ -329,7 +329,7 @@ void waitForServerWelcome() {
 
 void sendNickToServer(std::string nick) {	//UNUSED
 	sf::Packet packet;
-	packet << (sf::Uint8)Comandos::mi_nick_es;
+	packet << (sf::Uint8) Comandos::mi_nick_es;
 	packet << nick;
 
 	sf::Socket::Status st;
@@ -343,7 +343,7 @@ void sendNickToServer(std::string nick) {	//UNUSED
 void sendMessageToServer(std::string mensaje) {
 	sf::Packet packet;
 
-	packet << (sf::Uint8)Comandos::mensaje;
+	packet << (sf::Uint8) Comandos::mensaje;
 
 	packet << mensaje;
 
@@ -359,7 +359,7 @@ void sendMove(int x, int y) {
 	if (x < N_TILES_WIDTH*TILESIZE && y < N_TILES_WIDTH*TILESIZE)
 	{
 		sf::Packet packet;
-		packet << Comandos::Move;
+		packet << (sf::Uint8) Comandos::Move;
 		Directions dir;
 		
 		int dx = x - (jugadores.at(miTurno).position.x*TILESIZE + TILESIZE/2);

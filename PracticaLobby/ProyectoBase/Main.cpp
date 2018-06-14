@@ -28,6 +28,9 @@ int main()
 
 	sf::Clock mathmakingWait;
 	mathmakingWait.restart();
+
+	std::cout << "Servidor encendido y funcionando\n";
+
 	while (true)
 	{
 		//Aceptar nuevas conexiones

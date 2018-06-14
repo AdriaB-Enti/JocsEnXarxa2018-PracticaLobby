@@ -81,7 +81,7 @@ Match::~Match()
 void Match::sendCurrentTurnToAll()
 {
 	sf::Packet turnPacket;
-	turnPacket << Comandos::Es_Tu_Turno;
+	turnPacket << (sf::Uint8) Comandos::Es_Tu_Turno;
 	turnPacket << currentTurn;
 	sendPacketToAll(turnPacket);
 }
@@ -91,7 +91,7 @@ void Match::playerDead(int x, int y)
 	playersAlive--;
 	gameMap[x][y] = DEAD;
 	sf::Packet pack;
-	pack << Comandos::Eliminado;
+	pack << (sf::Uint8) Comandos::Eliminado;
 	for (int p = 0; p < MAX_PLAYERS; p++) {
 		if (players.at(p).position.x == x && players.at(p).position.y == y)
 		{
@@ -109,7 +109,7 @@ void Match::playerDead(int x, int y)
 void Match::sendWinner(sf::Uint8 winner) //Uint8?????
 {
 	sf::Packet pack;
-	pack << Comandos::Ganador;
+	pack << (sf::Uint8) Comandos::Ganador;
 	pack << winner;
 	sendPacketToAll(pack);
 }
@@ -211,7 +211,7 @@ void Match::sendMoveToAll(Directions dir)
 	movingPlayer->position.y = finalPosY;
 
 	sf::Packet pack;
-	pack << Comandos::Posicion_final;
+	pack << (sf::Uint8) Comandos::Posicion_final;
 	pack << finalPosX;
 	pack << finalPosY;
 	std::cout << "moving player to: " << finalPosX << ":" << finalPosY << std::endl;
@@ -224,16 +224,14 @@ void Match::update() {
 
 	auto it = players.begin();
 
-	int njugador = 0;	//TODO: iterar des de jugadores, que els sockets estiguin allà
+	int njugador = 0;
 	while (it != players.end())			//fem un recieve per cada client
 	{
 		if (players.at(njugador).connected)
 		{
-			//sf::TcpSocket::Status result = (*it)->receive(buffer, 100, bytesReceived);
 			sf::Packet packet;
 			sf::TcpSocket::Status result = (*it).playerSock->receive(packet);
 
-			//buffer[bytesReceived] = '\0';
 			if (result == sf::TcpSocket::Status::Done)
 			{
 				sf::Uint8 commandInt;
@@ -249,7 +247,7 @@ void Match::update() {
 
 						//Reenviar el mensaje a todos los jugadores
 						sf::Packet messagePacket;
-						messagePacket << (sf::Uint8)Comandos::mensaje;
+						messagePacket << (sf::Uint8) Comandos::mensaje;
 						messagePacket << newMessage;
 						sendPacketToAll(messagePacket);
 					}
@@ -286,10 +284,9 @@ void Match::update() {
 				players.at(njugador).connected = false;
 				playersAlive--;
 				sf::Packet disconPacket;
-				disconPacket << (sf::Uint8)Comandos::mensaje;
+				disconPacket << (sf::Uint8) Comandos::mensaje;
 				disconPacket << std::string("Servidor: el jugador "+ players.at(njugador).nick+" se ha desconectado");
 				sendPacketToAll(disconPacket);
-				//TODO: sendMsgToAll("Se ha desconectado el jugador " + players.at(njugador).nick);
 				//TODO: enviar comando disconect a tots els altres
 				//--delete * it;
 				//it = sockets.erase(it);

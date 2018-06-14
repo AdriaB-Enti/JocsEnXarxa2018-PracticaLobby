@@ -5,11 +5,11 @@
 
 DBManager::DBManager()
 {
-	std::cout << "constr\n";
 	driver = get_driver_instance();
 	con = driver->connect(DB_HOST, USER, PWD);
 	stmt = con->createStatement();
 	stmt->execute("USE gamedb");
+	std::cout << "Conexion con base de datos correcta" << std::endl;
 }
 
 bool DBManager::registerUser(std::string name, std::string pswd, std::string email)
