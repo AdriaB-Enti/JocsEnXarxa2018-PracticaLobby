@@ -294,21 +294,20 @@ void Match::update() {
 				sendPacketToAll(disconPacket);
 				gameMap[(*it).position.x][(*it).position.y] = EMPTY;
 
-				//Si era el turno de la perona que se ha desconectado, cambiamos para que el resto de jugadores puedan seguir jugando
+				//Si era el turno de la perona que se ha desconectado, lo cambiamos para que el resto de jugadores puedan seguir jugando
 				if (currentTurn == njugador)
 				{
 					changeTurn();
 				}
 				
-				//TODO: COMPROVAR SI QUEDA NOMÉS 1 JUGADOR CONECTAT (GUANYADOR)
-
+				//comprobar si solo queda un jugador conectado
+				if (playersAlive == 1 && !gameFinished)
+				{
+					sendWinner(currentTurn);
+					gameFinished = true;
+				}
 
 				//delete players.front().playerSock;
-
-				//Fent això es perdrien els turns reals:
-				//--delete * it;
-				//it = sockets.erase(it);
-				//++it;
 			}
 			else if (result == sf::TcpSocket::Status::Error) {
 				std::cout << "ERROR!!!" << std::endl;
