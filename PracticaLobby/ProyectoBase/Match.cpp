@@ -283,11 +283,29 @@ void Match::update() {
 				(*it).playerSock->disconnect();
 				players.at(njugador).connected = false;
 				playersAlive--;
+				sf::Packet disconMsgPacket;
+				disconMsgPacket << (sf::Uint8) Comandos::mensaje;
+				disconMsgPacket << std::string("Servidor: el jugador "+ players.at(njugador).nick+" se ha desconectado");
+				sendPacketToAll(disconMsgPacket);
+
 				sf::Packet disconPacket;
-				disconPacket << (sf::Uint8) Comandos::mensaje;
-				disconPacket << std::string("Servidor: el jugador "+ players.at(njugador).nick+" se ha desconectado");
+				disconPacket << (sf::Uint8) Comandos::desconectado;
+				disconPacket << (sf::Uint8) (*it).turn;
 				sendPacketToAll(disconPacket);
-				//TODO: enviar comando disconect a tots els altres
+				gameMap[(*it).position.x][(*it).position.y] = EMPTY;
+
+				//Si era el turno de la perona que se ha desconectado, cambiamos para que el resto de jugadores puedan seguir jugando
+				if (currentTurn == njugador)
+				{
+					changeTurn();
+				}
+				
+				//TODO: COMPROVAR SI QUEDA NOMÉS 1 JUGADOR CONECTAT (GUANYADOR)
+
+
+				//delete players.front().playerSock;
+
+				//Fent això es perdrien els turns reals:
 				//--delete * it;
 				//it = sockets.erase(it);
 				//++it;

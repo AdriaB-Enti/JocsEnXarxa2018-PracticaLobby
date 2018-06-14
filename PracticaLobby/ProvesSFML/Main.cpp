@@ -38,6 +38,7 @@ struct Player
 	sf::Vector2i position;
 	sf::Text nameText;
 	bool isDead = false;
+	bool disconnected = false;
 	void moveTo(sf::Uint32 x, sf::Uint32 y);
 };
 enum Directions
@@ -64,7 +65,6 @@ void waitForServerWelcome();
 
 //game
 void sendMessageToServer(std::string mensaje);
-void sendNickToServer(std::string nick);
 void sendMove(int x, int y);
 void recieveFromServer();
 std::string statusToStr(sf::Socket::Status status);
@@ -240,15 +240,18 @@ int main() {
 			window.draw(mapShape);
 			for (auto player = jugadores.begin(); player != jugadores.end(); player++)
 			{
-				characterSprite.setPosition(sf::Vector2f(player->position*TILESIZE));
-				if (player->isDead)
+				if (!player->disconnected)
 				{
-					characterSprite.rotate(-90);
-					characterSprite.move(sf::Vector2f(0, TILESIZE));
+					characterSprite.setPosition(sf::Vector2f(player->position*TILESIZE));
+					if (player->isDead)
+					{
+						characterSprite.rotate(-90);
+						characterSprite.move(sf::Vector2f(0, TILESIZE));
+					}
+					window.draw(characterSprite);
+					characterSprite.setRotation(0);
+					window.draw(player->nameText);
 				}
-				window.draw(characterSprite);
-				characterSprite.setRotation(0);
-				window.draw(player->nameText);
 			}
 		}
 
@@ -324,20 +327,6 @@ void waitForServerWelcome() {
 		}
 	}
 
-}
-
-
-void sendNickToServer(std::string nick) {	//UNUSED
-	sf::Packet packet;
-	packet << (sf::Uint8) Comandos::mi_nick_es;
-	packet << nick;
-
-	sf::Socket::Status st;
-	do
-	{
-		st = socket.send(packet);
-	} while (st == sf::Socket::Partial);
-	std::cout << "nick enviat amb status " << statusToStr(st) << std::endl;
 }
 
 void sendMessageToServer(std::string mensaje) {
@@ -485,7 +474,13 @@ void recieveFromServer(){
 				gameResult.setPosition(100, 400);
 			}
 			jugadores.at((int)eliminated).isDead = true;
+			//jugadores.at((int)eliminated)
 			std::cout << "El jugador " << (int)eliminated << " ha muerto!\n";
+			break;
+		case desconectado:
+			sf::Uint8 disconnected;
+			packet >> disconnected;
+			jugadores.at((int)disconnected).disconnected = true;
 			break;
 		case Ganador:
 			sf::Uint8 ganador;

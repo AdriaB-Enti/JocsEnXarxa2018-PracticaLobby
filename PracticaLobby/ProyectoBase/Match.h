@@ -36,5 +36,7 @@ public:
 	//Sends a packet to all the players that are connected to that match. Disconnected players or palyers at other matches do not count.
 	void sendPacketToAll(sf::Packet &packet);
 	void sendMoveToAll(Directions dir);
+	//Checks if there is only one player alive or only one player connected
+	void checkIf1AliveOrConnected();
 };
 

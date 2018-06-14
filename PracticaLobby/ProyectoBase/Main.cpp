@@ -97,10 +97,7 @@ int main()
 		}
 
 
-
-
 	}
-	
 
 
 	system("pause");
