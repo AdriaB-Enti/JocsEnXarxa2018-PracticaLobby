@@ -77,10 +77,11 @@ std::string statusToStr(sf::Socket::Status status);
 //Global vars
 sf::TcpSocket socket;		//Conexión con el servidor
 sf::Uint64 myId;
+sf::Uint16 myLevel;
 std::string mensajeTeclado;
 std::vector<Player> jugadores;
 sf::Uint8 miTurno = 200;	//Se cambiará
-sf::Text gameResult, gameChat, writingMessage;
+sf::Text gameResult, screenSubtitle, gameChat, writingMessage;
 std::list<std::string> lastMessages;	//The last 3 messages in chat;
 sf::RenderWindow window;
 
@@ -167,8 +168,12 @@ int main() {
 	mapShape.setTexture(&texture);
 	lobbyShape.setTexture(&lobbyTexture);
 	sf::Sprite characterSprite = sf::Sprite(characterTexture);
+
 	gameResult = sf::Text("BUSCANDO PARTIDA", font, 50);
-	gameResult.setPosition(window.getSize().x / 5, 40);
+	gameResult.setPosition(window.getSize().x / 5, 100);
+	screenSubtitle = sf::Text("Con jugadores con nivel similar ("+ std::to_string(myLevel)+")", font, 20);
+	screenSubtitle.setPosition(window.getSize().x / 4, 175);
+	screenSubtitle.setFillColor(sf::Color::White);
 	gameChat = sf::Text("", font, 18);
 	gameChat.setPosition(sf::Vector2f(15, window.getSize().y - 95));
 	writingMessage = sf::Text("", font, 18);
@@ -211,7 +216,7 @@ int main() {
 						writingMessage.setString("Escribe: " + mensajeTeclado);
 					}
 				}
-				if (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Return)) {		//Si apretamos enter, se envia el mensaje que teniamos escrito - TODO: controlar que no s'envii si està buit
+				if (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Return)) {		//Si apretamos enter, se envia el mensaje que teniamos escrito
 					if (!mensajeTeclado.empty()) {
 						sendMessageToServer(user+": "+mensajeTeclado);
 						mensajeTeclado = "";
@@ -237,6 +242,7 @@ int main() {
 		if (Screen::currentScene == Screen::scene::searchingScene)
 		{
 			window.draw(lobbyShape);
+			window.draw(screenSubtitle);
 		}else if (Screen::currentScene == Screen::scene::playingScene) {
 			//Dibujar el mapa i jugadores
 			window.draw(mapShape);
@@ -311,7 +317,6 @@ void waitForServerWelcome() {
 		sf::sleep(sf::milliseconds(200.f)); 
 		stResponse = socket.receive(packResponse);
 	}
-	//TODO: posar un temps limit per esperar la resposta?
 
 	sf::Uint8 comandoInt;
 	packResponse >> comandoInt;
@@ -319,8 +324,8 @@ void waitForServerWelcome() {
 	if (comando == Comandos::welcome)
 	{
 		packResponse >> myId;
-		//TODO: rebre el nivell?
-		std::cout << "Bienvenido al servidor, usuario " << (int)myId << "\n";
+		packResponse >> myLevel;
+		std::cout << "Bienvenido al servidor, usuario " << (int)myId << " (lvl " << (int)myLevel << ")\n";
 	}
 	else if (comando == Comandos::Error) {
 		sf::Uint8 errorInt;
@@ -426,7 +431,6 @@ void recieveFromServer(){
 					newPlayer.nameText.setFillColor(sf::Color(250, 0, 0));
 				newPlayer.nameText.setStyle(sf::Text::Bold);
 				newPlayer.nameText.setPosition(newPlayer.position.x*TILESIZE, newPlayer.position.y*TILESIZE);
-				//TODO: rebre el nivell
 				jugadores.push_back(newPlayer);
 			}
 

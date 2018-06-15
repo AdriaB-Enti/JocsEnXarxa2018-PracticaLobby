@@ -109,6 +109,7 @@ void recieveData() {
 	auto iter = searchingPlayers.begin();
 	while (iter != searchingPlayers.end())
 	{
+		bool playerDeleted = false;
 		sf::Packet packet;
 		sf::TcpSocket::Status result = iter->playerSock->receive(packet);
 
@@ -143,6 +144,7 @@ void recieveData() {
 				sf::Packet newPack;
 				newPack << (sf::Uint8)Comandos::welcome;
 				newPack << (sf::Uint64) newPlayerId;
+				newPack << iter->level;
 				iter->playerSock->send(newPack);
 
 
@@ -158,15 +160,18 @@ void recieveData() {
 				int playerId, playerLevel;
 				if (dbm.login(name, pass,playerId, playerLevel)) {
 					std::cout << "logging correct\n";
-					sf::Packet newPack;
-					newPack << (sf::Uint8)Comandos::welcome;
-					newPack << (sf::Uint64) playerId;
-					iter->playerSock->send(newPack);
 
 					iter->nick = name;
 					iter->idPlayer = (sf::Uint64)playerId;
 					iter->level = (sf::Uint16)playerLevel;
 					iter->isLogged = true;
+
+					sf::Packet newPack;
+					newPack << (sf::Uint8)Comandos::welcome;
+					newPack << iter->idPlayer;
+					newPack << iter->level;
+					iter->playerSock->send(newPack);
+
 					std::cout << "level: " << playerLevel << "\n";
 
 					//TODO: apuntar en el log de conexions
@@ -185,20 +190,6 @@ void recieveData() {
 				break;
 			case mi_nick_es:
 				break;
-			case inicio_partida:
-				break;
-			case mensaje:
-				break;
-			case Move:
-				break;
-			case Posicion_final:
-				break;
-			case Eliminado:
-				break;
-			case Ganador:
-				break;
-			case Es_Tu_Turno:
-				break;
 			case buscar_partida:
 
 
@@ -212,10 +203,14 @@ void recieveData() {
 			std::cout << "Un cliente se ha desconectado" << std::endl;
 			iter->playerSock->disconnect();
 			//TODO: ESBORRAR
+			//APUNTAR AL log de sessions
 			iter->connected = false;
+			iter = searchingPlayers.erase(iter);
+			playerDeleted = true;
 		}
 
-		iter++;
+		if(!playerDeleted)
+			iter++;
 	}
 
 	//Actualizar todas las partidas (incluye iterar sobre los jugadores que hay en ellas)

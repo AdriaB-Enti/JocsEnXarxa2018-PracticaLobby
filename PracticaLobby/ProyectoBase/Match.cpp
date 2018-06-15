@@ -65,10 +65,37 @@ void Match::sendMatchStart() {
 			st = player->playerSock->send(inicioPack);
 		} while (st == sf::Socket::Status::Partial);
 
+		if (st == sf::Socket::Status::Disconnected)
+		{
+			player->connected = false;
+			playersAlive--;
+		}
+
 		turn++;
 	}
 
-	
+	//if player/s disconnected
+	if (playersAlive == 0)
+	{
+		gameFinished = true;
+	}
+	else if (playersAlive == 1) {
+		gameFinished = true;
+		for (auto player = players.begin(); player != players.end(); player++)
+		{
+			if (player->connected) {
+				sendWinner(currentTurn);
+			}
+			currentTurn++;
+		}
+	}
+	else if (playersAlive > 1 && playersAlive < MAX_PLAYERS) {
+		//change turn until it finds someone still connected
+		while (!players.at((int)currentTurn).connected)
+		{
+			currentTurn = (sf::Uint8) (++currentTurn % MAX_PLAYERS);
+		}
+	}
 
 }
 
@@ -375,5 +402,8 @@ void Match::checkIf1AliveOrConnected(){
 	if (!gameFinished && connected == 1)
 	{
 		gameFinished = true;
+
+
+		 
 	}
 }
