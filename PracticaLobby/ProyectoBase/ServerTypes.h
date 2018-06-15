@@ -37,7 +37,8 @@ enum Comandos
 	Es_Tu_Turno,
 	Error,
 	buscar_partida,
-	desconectado
+	desconectado,
+	expulsado
 };
 
 enum Errors {

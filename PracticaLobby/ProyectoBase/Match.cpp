@@ -58,7 +58,6 @@ void Match::sendMatchStart() {
 		{
 			inicioPack << p->nick;
 			inicioPack << p->level;
-			//TODO: enviar el nivell
 		}
 		sf::Socket::Status st;
 		do
@@ -133,6 +132,16 @@ void Match::changeTurn()
 	sendCurrentTurnToAll();
 }
 
+void Match::sendMessageToAll(std::string mes)
+{
+
+	sf::Packet msgPacket;
+	msgPacket << (sf::Uint8) Comandos::mensaje;
+	msgPacket << mes;
+	sendPacketToAll(msgPacket);
+
+}
+
 void Match::sendPacketToAll(sf::Packet & packet)
 {
 	int jug = 0;
@@ -150,8 +159,17 @@ void Match::sendPacketToAll(sf::Packet & packet)
 			{
 				players.at(jug).connected = false;
 				(*itera).playerSock->disconnect();
-				//sendMsgToAll("Se ha desconectado el jugador "+ players.at(jug).nick);
-				//TODO: enviar commando disconnect
+				playersAlive--;
+				std::cout << "se ha desconectado un jugador\n";
+				sendMessageToAll("Servidor: el jugador " + players.at(jug).nick + " se ha desconectado");
+				
+
+				sf::Packet disconPacket;
+				disconPacket << (sf::Uint8) Comandos::desconectado;
+				disconPacket << (sf::Uint8) players.at(jug).turn;
+				sendPacketToAll(disconPacket);
+				gameMap[players.at(jug).position.x][players.at(jug).position.y] = EMPTY;
+
 				//liberar memoria
 			}
 		}
@@ -264,6 +282,8 @@ void Match::update() {
 							{
 								sendWinner(currentTurn);
 								gameFinished = true;
+								timerUntilKick.restart();
+								sendMessageToAll("Partida finalizada. En " + std::to_string(SECONDS_UNTIL_KICK) + " segundos se expulsará a todos los jugadores.");
 							}
 							//de ser veritat -> Comandos::Ganador
 							//del contrari, canviar el turn
@@ -305,6 +325,8 @@ void Match::update() {
 				{
 					sendWinner(currentTurn);
 					gameFinished = true;
+					timerUntilKick.restart();
+					sendMessageToAll("Partida finalizada. En " + std::to_string(SECONDS_UNTIL_KICK) + " se expulsarà a todos los jugadores.");
 				}
 
 				//delete players.front().playerSock;
@@ -329,4 +351,29 @@ void Match::update() {
 
 
 
+}
+
+void Match::kickEveryone() {
+	sf::Packet kick;
+	kick << (sf::Uint8) Comandos::expulsado;
+	sendPacketToAll(kick);
+}
+
+void Match::checkIf1AliveOrConnected(){
+
+	int connected	= 0;
+	int alive		= MAX_PLAYERS;
+	for (auto it = players.begin(); it < players.end(); it++)
+	{
+		if ((*it).connected)
+			connected++;
+		if ((*it).isDead)
+			alive--;
+	}
+
+
+	if (!gameFinished && connected == 1)
+	{
+		gameFinished = true;
+	}
 }

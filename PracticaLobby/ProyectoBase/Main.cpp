@@ -16,7 +16,7 @@ void recieveData();
 
 std::map<sf::Uint64, Player> players;
 std::map<sf::Uint32, Match> matches;
-std::vector<Player> nonActivePlayers;
+std::vector<Player> nonActivePlayers, searchingPlayers;
 sf::Uint64 idMatchCounter;
 DBManager dbm;
 
@@ -44,7 +44,7 @@ int main()
 			Player newPlayer;
 			newPlayer.playerSock = newSock;
 			newPlayer.playerSock->setBlocking(false);
-			nonActivePlayers.push_back(newPlayer);
+			searchingPlayers.push_back(newPlayer);
 		}
 
 
@@ -53,7 +53,7 @@ int main()
 		//Control non active players
 		if (mathmakingWait.getElapsedTime().asMilliseconds() > 300)
 		{
-			for (auto playerIter = nonActivePlayers.begin(); playerIter != nonActivePlayers.end();)
+			for (auto playerIter = searchingPlayers.begin(); playerIter != searchingPlayers.end();)
 			{
 				if (playerIter->isLogged)
 				{
@@ -79,7 +79,7 @@ int main()
 						matIter++;
 					}
 					if (placed) {
-						playerIter = nonActivePlayers.erase(playerIter);
+						playerIter = searchingPlayers.erase(playerIter);
 					} else {
 						std::cout << "jugador afegit a una nova\n";
 						//crear match i afegir el jugador
@@ -87,7 +87,7 @@ int main()
 						newMatch.players.push_back(*playerIter);
 						std::cout << "current matchs: " << matches.size() << std::endl;
 						matches.emplace(std::pair<sf::Uint32, Match>(idMatchCounter++, newMatch));
-						playerIter = nonActivePlayers.erase(playerIter);
+						playerIter = searchingPlayers.erase(playerIter);
 					}
 				}
 				else {
@@ -106,8 +106,8 @@ int main()
 
 //Recieve data from players who aren't inside a match
 void recieveData() {
-	auto iter = nonActivePlayers.begin();
-	while (iter != nonActivePlayers.end())
+	auto iter = searchingPlayers.begin();
+	while (iter != searchingPlayers.end())
 	{
 		sf::Packet packet;
 		sf::TcpSocket::Status result = iter->playerSock->receive(packet);
@@ -218,12 +218,27 @@ void recieveData() {
 		iter++;
 	}
 
-	//iterar jugadores en partidas (se hace dentro de match)
-	for (auto match = matches.begin(); match != matches.end(); match++)
+	//Actualizar todas las partidas (incluye iterar sobre los jugadores que hay en ellas)
+	for (auto match = matches.begin(); match != matches.end(); )
 	{
 		if (match->second.hasStarted)
 		{
 			match->second.update();
 		}
+
+		if (match->second.gameFinished || match->second.playersAlive <= 0)
+		{
+		//	TODO: Si se ha acabado la partida, activar contador atrás
+			if (match->second.playersAlive <= 0 || match->second.timerUntilKick.getElapsedTime().asSeconds() > SECONDS_UNTIL_KICK )
+			{
+				std::cout << "Eliminando partida finalizada con id= " << match->second.idGame << std::endl;
+				match->second.kickEveryone();
+				match = matches.erase(match);
+			}
+		} else
+		{
+			match++;
+		}
+		
 	}
 }

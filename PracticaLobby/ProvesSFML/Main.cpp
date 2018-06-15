@@ -25,7 +25,8 @@ enum Comandos
 	Es_Tu_Turno,
 	Error,
 	buscar_partida,
-	desconectado
+	desconectado,
+	expulsado
 };
 enum Errors {
 	login_error
@@ -46,14 +47,17 @@ enum Directions
 	UP, DOWN, LEFT, RIGHT
 };
 namespace Game {
-	enum gameState
-	{
-		others_turn,
-		my_turn_chosing_move,
-		my_turn_waiting_server
-	};
-	gameState currentState = gameState::others_turn;
 	sf::Uint8 currentTurn = 0;
+}
+
+namespace Screen {
+	enum scene
+	{
+		searchingScene,
+		playingScene,
+		menuScene
+	};
+	scene currentScene = scene::searchingScene;
 }
 
 //Fordward declarations
@@ -79,7 +83,6 @@ sf::Uint8 miTurno = 200;	//Se cambiará
 sf::Text gameResult, gameChat, writingMessage;
 std::list<std::string> lastMessages;	//The last 3 messages in chat;
 sf::RenderWindow window;
-bool inLobby = true;
 
 //Font
 sf::Font font;
@@ -171,7 +174,7 @@ int main() {
 	writingMessage = sf::Text("", font, 18);
 	writingMessage.setPosition(sf::Vector2f(15, window.getSize().y - 30));
 	writingMessage.setFillColor(sf::Color::Yellow);
-	writingMessage.setString("Escribe: ");
+	writingMessage.setString("(Chat desabilitado fuera de partidas)");
 
 	while (window.isOpen())
 	{
@@ -190,52 +193,51 @@ int main() {
 			if (event.type == sf::Event::MouseButtonPressed) {
 				std::cout << "Mouse Pressed at position: " << event.mouseButton.x << ":"
 					<< event.mouseButton.y << std::endl;
-				if (Game::currentTurn == miTurno)
-				{
-					sendMove(event.mouseButton.x, event.mouseButton.y);
+				if (Screen::currentScene == Screen::scene::playingScene) {
+					if (Game::currentTurn == miTurno)
+						sendMove(event.mouseButton.x, event.mouseButton.y);
 				}
 				//sf::Mouse::getPosition(window)
 			}
 
-			//Detectar si estamos escribiendo algo, enviar el texto si presionamos enter, borrar la ultima letra si apretamos Backspace
-			if (event.type == sf::Event::TextEntered)
+			//Solo podemos escribir si estamos en una partida
+			if (Screen::currentScene == Screen::scene::playingScene)
 			{
-				if (event.text.unicode > 31 && event.text.unicode < 128) {
-					mensajeTeclado.push_back(static_cast<char>(event.text.unicode));
-					writingMessage.setString("Escribe: " + mensajeTeclado);
+				//Detectar si estamos escribiendo algo, enviar el texto si presionamos enter, borrar la ultima letra si apretamos Backspace
+				if (event.type == sf::Event::TextEntered)
+				{
+					if (event.text.unicode > 31 && event.text.unicode < 128) {
+						mensajeTeclado.push_back(static_cast<char>(event.text.unicode));
+						writingMessage.setString("Escribe: " + mensajeTeclado);
+					}
+				}
+				if (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Return)) {		//Si apretamos enter, se envia el mensaje que teniamos escrito - TODO: controlar que no s'envii si està buit
+					if (!mensajeTeclado.empty()) {
+						sendMessageToServer(user+": "+mensajeTeclado);
+						mensajeTeclado = "";
+						writingMessage.setString("Escribe: " + mensajeTeclado);
+					}
+				}
+				if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::BackSpace)) {
+					if (!mensajeTeclado.empty()) {
+						mensajeTeclado.pop_back();
+						writingMessage.setString("Escribe: " + mensajeTeclado);
+					}
+
 				}
 			}
-			if (event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Return)) {		//Si apretamos enter, se envia el mensaje que teniamos escrito - TODO: controlar que no s'envii si està buit
-				if (!mensajeTeclado.empty()) {
-					sendMessageToServer(user+": "+mensajeTeclado);
-					mensajeTeclado = "";
-					writingMessage.setString("Escribe: " + mensajeTeclado);
-				}
-			}
-			if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::BackSpace)) {
-				if (!mensajeTeclado.empty()) {
-					mensajeTeclado.pop_back();
-					writingMessage.setString("Escribe: " + mensajeTeclado);
-				}
-			}
+
 		}
 
 		recieveFromServer();
 
 
-		switch (Game::currentState)
-		{
-			case Game::gameState::my_turn_chosing_move:
-				break;
-			default:
-				break;
-		}
 		window.clear();
 
-		if (inLobby)
+		if (Screen::currentScene == Screen::scene::searchingScene)
 		{
 			window.draw(lobbyShape);
-		}else {
+		}else if (Screen::currentScene == Screen::scene::playingScene) {
 			//Dibujar el mapa i jugadores
 			window.draw(mapShape);
 			for (auto player = jugadores.begin(); player != jugadores.end(); player++)
@@ -253,6 +255,10 @@ int main() {
 					window.draw(player->nameText);
 				}
 			}
+		} else {
+			//posar els botons
+
+
 		}
 
 		window.draw(gameResult);
@@ -395,8 +401,10 @@ void recieveFromServer(){
 		case inicio_partida:
 		{
 			std::cout << "Game started\n";
-			inLobby = false;
+			Screen::currentScene = Screen::scene::playingScene;
+			writingMessage.setString("Escribe: ");
 			gameResult.setString("");
+
 			std::string mensajeStr;
 			std::stringstream ss;
 			std::string playerN;
@@ -491,6 +499,13 @@ void recieveFromServer(){
 				gameResult.setFillColor(sf::Color(250, 0, 0));
 				gameResult.setPosition(100, 400);
 			}
+			break;
+		case expulsado:
+			Screen::currentScene = Screen::scene::menuScene;
+			gameResult = sf::Text("Menu principal", font, 50);
+			gameResult.setFillColor(sf::Color(250, 255, 255));
+			gameResult.setPosition(window.getSize().x / 5, 40);
+			writingMessage.setString("(Chat desabilitado fuera de partidas)");
 			break;
 		default:
 			break;
