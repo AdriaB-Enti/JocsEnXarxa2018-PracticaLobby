@@ -59,6 +59,7 @@ void Match::sendMatchStart() {
 			inicioPack << p->nick;
 			inicioPack << p->level;
 		}
+
 		sf::Socket::Status st;
 		do
 		{
@@ -151,9 +152,16 @@ bool Match::isOutsideMap(int x, int y)
 
 void Match::changeTurn()
 {
+	int failCounter = 0;
 	do
 	{
 		currentTurn = (sf::Uint8) (++currentTurn % MAX_PLAYERS);
+		failCounter++;	//if there are no players left, finish the match
+		if (failCounter > MAX_PLAYERS)
+		{
+			gameFinished = true;
+			break;
+		}
 	} while (players.at(currentTurn).isDead || !players.at(currentTurn).connected);
 	std::cout << "Changing turn to" << (int)currentTurn << "and sending..." << std::endl;
 	sendCurrentTurnToAll();
