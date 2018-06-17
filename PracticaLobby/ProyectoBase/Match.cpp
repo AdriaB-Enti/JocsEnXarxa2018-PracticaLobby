@@ -62,6 +62,7 @@ void Match::sendMatchStart() {
 		player->turn = turn;
 		player->isDead = false;
 		player->position = initialPositions[turn];
+		gameMap[player->position.x][player->position.y] = CHARACTER;
 		sf::Packet inicioPack;
 		inicioPack << (sf::Uint8) Comandos::inicio_partida;
 		inicioPack << (sf::Uint8) turn;

@@ -89,6 +89,7 @@ int main()
 						Match newMatch = Match();
 						newMatch.players.push_back(*playerIter);
 						std::cout << "current matchs: " << matches.size() << std::endl;
+						newMatch.idGame = idMatchCounter;
 						matches.emplace(std::pair<sf::Uint32, Match>(idMatchCounter++, newMatch));
 						playerIter = searchingPlayers.erase(playerIter);
 					}
