@@ -227,8 +227,8 @@ int main() {
 						{
 							st = socket.send(match_packet);
 						} while (st == sf::Socket::Partial);
-						Screen::currentScene == Screen::scene::searchingScene;
-						gameResult.setString("");
+						Screen::currentScene = Screen::scene::searchingScene;
+						gameResult.setString("BUSCANDO PARTIDA");
 					}
 					//Exit button
 					if (event.mouseButton.x > buttonSprite.getPosition().x && event.mouseButton.x < buttonSprite.getPosition().x + buttonTexture.getSize().x
@@ -455,6 +455,7 @@ void recieveFromServer(){
 			std::stringstream ss;
 			std::string playerN;
 			packet >> miTurno;
+			jugadores.clear();
 			for (int i = 0; i < MAXPLAYERS; i++)
 			{
 				Player newPlayer;

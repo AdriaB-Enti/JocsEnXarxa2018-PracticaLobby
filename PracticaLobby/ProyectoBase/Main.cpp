@@ -221,7 +221,7 @@ void recieveData() {
 		bool added = false;
 		
 		sf::Packet packet;
-		sf::TcpSocket::Status result = iter->playerSock->receive(packet);
+		sf::TcpSocket::Status result = nonAct->playerSock->receive(packet);
 		
 		if (result == sf::TcpSocket::Status::Done)
 		{

@@ -24,6 +24,8 @@ public:
 	bool gameFinished = false;
 	sf::Clock timerUntilKick;
 
+	int gameMap[8][8];
+
 	Match();
 	~Match();
 

@@ -2,16 +2,16 @@
 #include "Match.h"
 #include <iostream>
 
-int gameMap[8][8] = {
-	{ 0,0,0,0,0,0,0,0 },
-{ 0,0,0,0,0,0,0,0 },
-{ 0,0,0,0,0,0,0,0 },
-{ 0,0,0,0,0,0,0,0 },
-{ 0,0,0,0,0,0,0,0 },
-{ 0,0,0,0,0,0,0,0 },
-{ 0,0,0,0,0,0,0,0 },
-{ 0,0,0,0,0,0,0,0 },
-};
+//int gameMap[8][8] = {
+//	{ 0,0,0,0,0,0,0,0 },
+//{ 0,0,0,0,0,0,0,0 },
+//{ 0,0,0,0,0,0,0,0 },
+//{ 0,0,0,0,0,0,0,0 },
+//{ 0,0,0,0,0,0,0,0 },
+//{ 0,0,0,0,0,0,0,0 },
+//{ 0,0,0,0,0,0,0,0 },
+//{ 0,0,0,0,0,0,0,0 },
+//};
 
 
 Match::Match()
@@ -42,15 +42,26 @@ bool Match::isFull()
 }
 
 void Match::sendMatchStart() {
+	//reset gamemap
+	for (int x = 0; x < 8; x++)
+	{
+		for (int y = 0; y < 8; y++)
+		{
+			gameMap[x][y] = 0;
+		}
+	}
 	std::cout << "starting match " << (int)idGame << std::endl;
 	//enviar start game a tots els players
 	int turn = 0;
+
+	const sf::Vector2i initialPositions[] = { sf::Vector2i(0,0),  sf::Vector2i(0,7),  sf::Vector2i(7,0),  sf::Vector2i(7,7) };
 
 	for (auto player = players.begin(); player != players.end(); player++)
 	{
 		player->idGame = idGame;
 		player->turn = turn;
-
+		player->isDead = false;
+		player->position = initialPositions[turn];
 		sf::Packet inicioPack;
 		inicioPack << (sf::Uint8) Comandos::inicio_partida;
 		inicioPack << (sf::Uint8) turn;
