@@ -128,8 +128,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Account.cpp" />
-    <ClCompile Include="copiaMain.cpp" />
-    <ClCompile Include="copiaProvesBaseDatos.cpp" />
     <ClCompile Include="DBManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Match.cpp" />

@@ -2,17 +2,6 @@
 #include "Match.h"
 #include <iostream>
 
-//int gameMap[8][8] = {
-//	{ 0,0,0,0,0,0,0,0 },
-//{ 0,0,0,0,0,0,0,0 },
-//{ 0,0,0,0,0,0,0,0 },
-//{ 0,0,0,0,0,0,0,0 },
-//{ 0,0,0,0,0,0,0,0 },
-//{ 0,0,0,0,0,0,0,0 },
-//{ 0,0,0,0,0,0,0,0 },
-//{ 0,0,0,0,0,0,0,0 },
-//};
-
 
 Match::Match()
 {
@@ -47,7 +36,7 @@ void Match::sendMatchStart() {
 	{
 		for (int y = 0; y < 8; y++)
 		{
-			gameMap[x][y] = 0;
+			gameMap[x][y] = EMPTY;
 		}
 	}
 	std::cout << "starting match " << (int)idGame << std::endl;
@@ -136,7 +125,6 @@ void Match::playerDead(int x, int y)
 		{
 			players.at(p).isDead = true;
 			pack << players.at(p).turn;
-			//sendMsgToAll("Servidor: El jugador " + players.at(p).nick + " ha muerto!");
 			break;
 		}
 	}

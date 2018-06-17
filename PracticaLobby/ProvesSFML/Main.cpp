@@ -5,7 +5,7 @@
 #include <sstream>
 #include <list>
 
-#define MAXPLAYERS 2
+#define MAXPLAYERS 4
 #define TILESIZE 100
 #define N_TILES_WIDTH 8
 #define N_TILES_HEIGHT 8

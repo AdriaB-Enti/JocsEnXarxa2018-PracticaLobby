@@ -3,7 +3,7 @@
 #include <vector>
 #include "ServerTypes.h"
 
-#define MAX_PLAYERS 2
+#define MAX_PLAYERS 4
 #define MAX_LEVEL_DIFFERENCE 3	//Número de niveles que otros jugadores pueden tener de más o menos al hacer macthmaking
 #define SECONDS_UNTIL_KICK 4
 #define N_TILES_WIDTH 8

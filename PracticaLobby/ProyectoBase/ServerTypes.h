@@ -3,8 +3,6 @@
 
 struct Player
 {
-	
-	//socket
 	sf::Uint32 idGame;
 	sf::Uint64 idPlayer;
 	sf::Uint8 turn;
