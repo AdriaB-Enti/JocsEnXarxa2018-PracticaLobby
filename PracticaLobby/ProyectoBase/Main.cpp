@@ -70,7 +70,10 @@ int main()
 									std::cout << "match full\n";
 									matIter->second.hasStarted = true;
 									matIter->second.sendMatchStart();
-									matIter->second.sendCurrentTurnToAll();
+									if (matIter->second.playersAlive > 1)
+									{
+										matIter->second.sendCurrentTurnToAll();
+									}
 								}
 								placed = true;
 								break;
@@ -213,6 +216,40 @@ void recieveData() {
 			iter++;
 	}
 
+	for (auto nonAct = nonActivePlayers.begin(); nonAct != nonActivePlayers.end();)
+	{
+		bool added = false;
+		
+		sf::Packet packet;
+		sf::TcpSocket::Status result = iter->playerSock->receive(packet);
+		
+		if (result == sf::TcpSocket::Status::Done)
+		{
+			sf::Uint8 commandInt;
+			packet >> commandInt;
+			Comandos commandRecieved = (Comandos)commandInt;
+
+			switch (commandRecieved)
+			{
+			case buscar_partida:
+
+				searchingPlayers.push_back((*nonAct));
+				nonAct = nonActivePlayers.erase(nonAct);
+				added = true;
+
+				break;
+			default:
+				break;
+			}
+		}
+
+
+		if (!added)
+		{
+			nonAct++;
+		}
+	}
+
 	//Actualizar todas las partidas (incluye iterar sobre los jugadores que hay en ellas)
 	for (auto match = matches.begin(); match != matches.end(); )
 	{
@@ -228,6 +265,14 @@ void recieveData() {
 			{
 				std::cout << "Eliminando partida finalizada con id= " << match->second.idGame << std::endl;
 				match->second.kickEveryone();
+
+				std::copy(match->second.players.begin(), match->second.players.end(), std::back_inserter(nonActivePlayers));
+
+				/*for (auto ply = match->second.players.begin(); ply != match->second.players.end(); ) {
+					nonActivePlayers.push_back((*ply));
+					ply = match->second.players.erase(ply);
+				}
+*/
 				match = matches.erase(match);
 			}
 		} else

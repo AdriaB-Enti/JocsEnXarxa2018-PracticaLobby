@@ -160,11 +160,16 @@ void Match::changeTurn()
 		if (failCounter > MAX_PLAYERS)
 		{
 			gameFinished = true;
+			timerUntilKick.restart();
 			break;
 		}
 	} while (players.at(currentTurn).isDead || !players.at(currentTurn).connected);
 	std::cout << "Changing turn to" << (int)currentTurn << "and sending..." << std::endl;
-	sendCurrentTurnToAll();
+	//enviar turn nomes si cal
+	if (failCounter <= MAX_PLAYERS)
+	{
+		sendCurrentTurnToAll();
+	}
 }
 
 void Match::sendMessageToAll(std::string mes)
@@ -205,6 +210,10 @@ void Match::sendPacketToAll(sf::Packet & packet)
 				sendPacketToAll(disconPacket);
 				gameMap[players.at(jug).position.x][players.at(jug).position.y] = EMPTY;
 
+				if ( ((int)currentTurn) == jug)
+				{
+					changeTurn();
+				}
 				//liberar memoria
 			}
 		}
@@ -350,7 +359,7 @@ void Match::update() {
 				gameMap[(*it).position.x][(*it).position.y] = EMPTY;
 
 				//Si era el turno de la perona que se ha desconectado, lo cambiamos para que el resto de jugadores puedan seguir jugando
-				if (currentTurn == njugador)
+				if (((int)currentTurn) == njugador)
 				{
 					changeTurn();
 				}

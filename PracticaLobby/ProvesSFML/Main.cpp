@@ -47,7 +47,7 @@ enum Directions
 	UP, DOWN, LEFT, RIGHT
 };
 namespace Game {
-	sf::Uint8 currentTurn = 0;
+	sf::Uint8 currentTurn = 20;
 }
 
 namespace Screen {
@@ -82,6 +82,7 @@ std::string mensajeTeclado;
 std::vector<Player> jugadores;
 sf::Uint8 miTurno = 200;	//Se cambiará
 sf::Text gameResult, screenSubtitle, gameChat, writingMessage;
+sf::Text matchmakingButtonText, exitButtonText;
 std::list<std::string> lastMessages;	//The last 3 messages in chat;
 sf::RenderWindow window;
 
@@ -154,13 +155,15 @@ int main() {
 	sf::RectangleShape mapShape(sf::Vector2f(TILESIZE*N_TILES_WIDTH, TILESIZE*N_TILES_HEIGHT));
 	sf::RectangleShape lobbyShape = mapShape;
 	//mapShape.setFillColor(sf::Color::Green);
-	sf::Texture texture, characterTexture, lobbyTexture;
+	sf::Texture texture, characterTexture, lobbyTexture, buttonTexture;
 	if (!lobbyTexture.loadFromFile("greytext.png"))
 		std::cout << "Error al cargar la textura del lobby!\n";
 	if (!texture.loadFromFile("mapa2.png"))
 		std::cout << "Error al cargar la textura del mapa!\n";
 	if (!characterTexture.loadFromFile("personatgeTransp.png"))
 		std::cout << "Error al cargar la textura del personaje!\n";
+	if (!buttonTexture.loadFromFile("button.png"))
+		std::cout << "Error al cargar la textura del boton!\n";
 	if (!font.loadFromFile("courbd.ttf"))
 		std::cout << "Error al cargar la fuente" << std::endl;
 
@@ -168,6 +171,7 @@ int main() {
 	mapShape.setTexture(&texture);
 	lobbyShape.setTexture(&lobbyTexture);
 	sf::Sprite characterSprite = sf::Sprite(characterTexture);
+	sf::Sprite buttonSprite = sf::Sprite(buttonTexture);
 
 	gameResult = sf::Text("BUSCANDO PARTIDA", font, 50);
 	gameResult.setPosition(window.getSize().x / 5, 100);
@@ -180,6 +184,14 @@ int main() {
 	writingMessage.setPosition(sf::Vector2f(15, window.getSize().y - 30));
 	writingMessage.setFillColor(sf::Color::Yellow);
 	writingMessage.setString("(Chat desabilitado fuera de partidas)");
+
+	matchmakingButtonText = sf::Text("Matchmaking", font, 25);
+	matchmakingButtonText.setPosition(66 + window.getSize().x / 2 - buttonTexture.getSize().x / 2, 36 + 3 * window.getSize().y / 8);
+	matchmakingButtonText.setFillColor(sf::Color::Green);
+
+	exitButtonText = sf::Text("Salir", font, 25);
+	exitButtonText.setPosition(105 + window.getSize().x / 2 - buttonTexture.getSize().x / 2, 36 + 5 * window.getSize().y / 8);
+	exitButtonText.setFillColor(sf::Color::Green);
 
 	while (window.isOpen())
 	{
@@ -201,6 +213,29 @@ int main() {
 				if (Screen::currentScene == Screen::scene::playingScene) {
 					if (Game::currentTurn == miTurno)
 						sendMove(event.mouseButton.x, event.mouseButton.y);
+				}
+				if (Screen::currentScene == Screen::scene::menuScene)
+				{
+					//Matchmaking button
+					if (event.mouseButton.x > buttonSprite.getPosition().x && event.mouseButton.x < buttonSprite.getPosition().x+buttonTexture.getSize().x
+						&& event.mouseButton.y > 3 * window.getSize().y / 8 && event.mouseButton.y < (3 * window.getSize().y / 8) + buttonTexture.getSize().y)
+					{
+						sf::Packet match_packet;
+						match_packet << (sf::Uint8)Comandos::buscar_partida;
+						sf::Socket::Status st;
+						do
+						{
+							st = socket.send(match_packet);
+						} while (st == sf::Socket::Partial);
+						Screen::currentScene == Screen::scene::searchingScene;
+						gameResult.setString("");
+					}
+					//Exit button
+					if (event.mouseButton.x > buttonSprite.getPosition().x && event.mouseButton.x < buttonSprite.getPosition().x + buttonTexture.getSize().x
+						&& event.mouseButton.y > 5 * window.getSize().y / 8 && event.mouseButton.y < (5 * window.getSize().y / 8) + buttonTexture.getSize().y)
+					{
+						window.close();
+					}
 				}
 				//sf::Mouse::getPosition(window)
 			}
@@ -261,10 +296,16 @@ int main() {
 					window.draw(player->nameText);
 				}
 			}
-		} else {
-			//posar els botons
+		} else if (Screen::currentScene == Screen::scene::menuScene) {
+			window.draw(lobbyShape);
+			//Menu buttons
+			buttonSprite.setPosition(window.getSize().x / 2 - buttonTexture.getSize().x / 2, 3 * window.getSize().y / 8);
+			window.draw(buttonSprite);
+			window.draw(matchmakingButtonText);
 
-
+			buttonSprite.setPosition(window.getSize().x / 2 - buttonTexture.getSize().x / 2, 5 * window.getSize().y / 8);
+			window.draw(buttonSprite);
+			window.draw(exitButtonText);
 		}
 
 		window.draw(gameResult);
